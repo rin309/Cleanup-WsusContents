@@ -26,11 +26,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Cleanup-WsusContents.ps1" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Windows 10 LTSB 2016, 64ビット版.txt" />
     <Content Include="Windows 10, バージョン 1703 64ビット版.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cleanup-WsusContents.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

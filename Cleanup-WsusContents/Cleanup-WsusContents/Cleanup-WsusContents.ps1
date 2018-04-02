@@ -9,13 +9,20 @@ $Wsus = Get-WsusServer -Name localhost -PortNumber 8530
 
 
 Function Decline-WsusUpdates($FilteredUpdates){
-	Write-Verbose "** 指定済みの LegacyName を含む更新プログラムを拒否" #-Verbose
-	$DeclineUpdatesCount = 0
-	$FilteredUpdates | Foreach-Object {
-		$_.Decline()
-		Write-Verbose ("*** 拒否済み: " + $_.Title) #-Verbose
-		Write-Progress -Activity "指定済みの LegacyName を含む更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete ($DeclineUpdatesCount++ / $FilteredUpdates.Count * 100)
-	}
+    If ($FilteredUpdates -ne $null){
+	    Write-Verbose "** 指定済みの LegacyName を含む更新プログラムを拒否" #-Verbose
+	    $DeclineUpdatesCount = 0
+	    $FilteredUpdates | Foreach-Object {
+		    $_.Decline()
+		    Write-Verbose ("*** 拒否済み: " + $_.Title) #-Verbose
+            If ($DeclineUpdatesCount -eq 0){
+                Write-Progress -Activity "指定済みの LegacyName を含む更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete 0
+            }
+            Else{
+                Write-Progress -Activity "指定済みの LegacyName を含む更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete ($DeclineUpdatesCount++ / $FilteredUpdates.Count * 100)
+		    }
+	    }
+    }
 }
 Function Cleanup-Wsus(){
 	Write-Progress -Activity "クリーンアップしています" -Status "1/4 - 削除された古い更新プログラム" -CurrentOperation $_.LegacyName -PercentComplete (0 / 4 * 100)
@@ -31,7 +38,7 @@ Function Cleanup-Wsus(){
 
 
 $FilteredUpdates = @()
-$FilteredUpdates = $AllUpdates | Where {IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
+$FilteredUpdates = $Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
 Decline-WsusUpdates($FilteredUpdates)
 
 $FilteredUpdates = @()
@@ -39,6 +46,7 @@ $AllUpdates = $Wsus.GetUpdates() | Where IsDeclined -eq $False
 
 Write-Verbose "* 更新プログラムを拒否" #-Verbose
 Write-Verbose "** 最新から4つより古い機能更新プログラムを削除する" #-Verbose
+$WsusUpgradesProgramsCount = 1
 $AllUpdates | Where UpdateClassificationTitle -eq "Upgrades" | Sort CreationDate -Descending | Foreach-Object {
     If ($WsusUpgradesProgramsCount++ -gt 4){
         $_.Decline()
@@ -56,7 +64,7 @@ Get-Content -Path "Windows 10, バージョン 1703 64ビット版.txt" | ForEac
 }
 
 Decline-WsusUpdates($FilteredUpdates)
-
+Cleanup-Wsus
 
 
 #更新プログラムの一覧
