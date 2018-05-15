@@ -1,0 +1,12 @@
+*890830_X86_WIN8TP_MRT_*
+*890830_X86_WIN8_MRT_*
+*Net30SP2-RTM-X86-*
+*-Win8.1-RTM-X86-*
+*-WindowsBlue-.Net20SP2-RTM-X86-*
+*-WindowsBlue-.Net45x-RTM-X86-*
+*-WinBlue-Partner-X86-TSL
+*-WindowsBlue-.Net30SP2-RTM-X86-*
+*-Win8.1-.NET4.6.x-X86-*
+*-Windows81Client-RTM-X86-TSL-World
+*-Windows81Client-RTM-AdobeFlashPlayer-X86-TSL-World
+*-DOTNET-X86-TSL
