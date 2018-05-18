@@ -1,11 +1,12 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
 #
-# 20180515 WSUS から不要な更新プログラムを拒否する
+# 20180519 WSUS から不要な更新プログラムを拒否する
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、直接WSUSかスクリプトのメンテナンスが必要になることを理解してください。
 # このスクリプトを利用したことによる問題に対する責任は一切負いません。実行する前に必ず検証をしてください。
 $FilterFileName = "C:\Tools\Scripts\Wsus\Filter-対象の定義ファイル名.txt"
+$DummyFileName = "C:\Tools\Scripts\Wsus\Dummy-4GB.tmp"
 $DeclineUpgradesProgramsLeft = 4
 
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
@@ -40,7 +41,8 @@ Function Cleanup-Wsus(){
 	$Wsus | Invoke-WsusServerCleanup -CleanupUnneededContentFiles
 }
 
-
+#スクリプトが正常に動作するためのダミーファイルを削除する
+Remove-Item -Path $DummyFileName -Force | Out-Null
 
 $FilteredUpdates = @()
 $FilteredUpdates = $Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
@@ -78,3 +80,6 @@ start "C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\SQLC
 #$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
 #$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
 #$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Export-Csv 未承認の更新プログラム.csv -Encoding UTF8
+
+#スクリプトが正常に動作するために、作業用のダミーファイルを作成する
+FsUtil File CreateNew $DummyFileName 4294967296 | Out-Null
