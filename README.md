@@ -26,8 +26,8 @@ Cleanup-WsusContents.ps1 のコメントアウトを1つずつ見ていくと Of
 
 
 ## 実行する
-以下のコマンドを実行すると
-PowerShell -ExecutionPolicy RemoteSigned -File "C:\Tools\Scripts\Wsus\Cleanup-WsusContents.ps1"
+以下のコマンドを実行するとスクリプトを実行できます。
+－PowerShell -ExecutionPolicy RemoteSigned -File "C:\Tools\Scripts\Wsus\Cleanup-WsusContents.ps1"
 
 
 ## タスクでスケジュールする
