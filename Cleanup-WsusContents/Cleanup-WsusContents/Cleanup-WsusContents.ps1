@@ -1,35 +1,59 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
 #
-# 20180519 WSUS から不要な更新プログラムを拒否する
+# 20181005 WSUS から不要な更新プログラムを拒否する
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、直接WSUSかスクリプトのメンテナンスが必要になることを理解してください。
 # このスクリプトを利用したことによる問題に対する責任は一切負いません。実行する前に必ず検証をしてください。
-$FilterFileName = "C:\Tools\Scripts\Wsus\Filter-対象の定義ファイル名.txt"
-$DummyFileName = "C:\Tools\Scripts\Wsus\Dummy-4GB.tmp"
-$DeclineUpgradesProgramsLeft = 4
 
+#最初に変数をメンテナンスしてください
+$QualityUpdatesFilterFileName = "C:\Tools\Scripts\Wsus\Filter-QU-対象の定義ファイル名.txt"
+$FeatureUpdatesFilterFileName = "C:\Tools\Scripts\Wsus\Filter-FU-対象の定義ファイル名.txt"
+$DummyFilePath = "C:\Tools\Scripts\Wsus\Dummy.tmp"
+$DummyFileSize = 4294967296
+$WsusDBMaintenanceScriptPath = "C:\Tools\Scripts\Wsus\Scripts-WsusDBMaintenance.sql"
+
+$SqlCmdPath = "C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\SQLCMD.EXE"
+$SqlServerPath = "np:\\.\pipe\Microsoft##WID\tsql\query"
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
 $Wsus = Get-WsusServer -Name localhost -PortNumber 8530
 
 
-Function Decline-WsusUpdates($FilteredUpdates){
+#特定の機能更新プログラムを拒否
+Function Decline-FeatureUpdates($FilteredUpdates){
     If ($FilteredUpdates -ne $null){
-	    Write-Host "** 指定済みの LegacyName を含む更新プログラムを拒否"
 	    $DeclineUpdatesCount = 0
-	    $FilteredUpdates | Foreach-Object {
+	    $FilteredUpdates | ForEach-Object {
 		    $_.Decline()
 		    #Write-Host ("*** 拒否済み: " + $_.Title)
             If ($DeclineUpdatesCount -eq 0){
-                Write-Progress -Activity "指定済みの LegacyName を含む更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete 0
+                Write-Progress -Activity "機能更新プログラムを拒否" -Status $_.Title -PercentComplete 0
             }
             Else{
-                Write-Progress -Activity "指定済みの LegacyName を含む更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete ($DeclineUpdatesCount / $FilteredUpdates.Count * 100)
+                Write-Progress -Activity "機能更新プログラムを拒否" -Status $_.Title -PercentComplete ($DeclineUpdatesCount / $FilteredUpdates.Count * 100)
 		    }
             $DeclineUpdatesCount++
 	    }
     }
 }
+#特定の品質更新プログラムを拒否
+Function Decline-QualityUpdates($FilteredUpdates){
+    If ($FilteredUpdates -ne $null){
+	    $DeclineUpdatesCount = 0
+	    $FilteredUpdates | ForEach-Object {
+		    $_.Decline()
+		    #Write-Host ("*** 拒否済み: " + $_.Title)
+            If ($DeclineUpdatesCount -eq 0){
+                Write-Progress -Activity "品質更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete 0
+            }
+            Else{
+                Write-Progress -Activity "品質更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete ($DeclineUpdatesCount / $FilteredUpdates.Count * 100)
+		    }
+            $DeclineUpdatesCount++
+	    }
+    }
+}
+#Wsusのクリーンアップ
 Function Cleanup-Wsus(){
 	Write-Progress -Activity "クリーンアップしています" -Status "1/4 - 削除された古い更新プログラム" -CurrentOperation $_.LegacyName -PercentComplete (0 / 4 * 100)
 	$Wsus | Invoke-WsusServerCleanup -DeclineSupersededUpdates
@@ -41,45 +65,56 @@ Function Cleanup-Wsus(){
 	$Wsus | Invoke-WsusServerCleanup -CleanupUnneededContentFiles
 }
 
+
 #スクリプトが正常に動作するためのダミーファイルを削除する
-Remove-Item -Path $DummyFileName -Force | Out-Null
-
-$FilteredUpdates = @()
-$FilteredUpdates = $Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
-Decline-WsusUpdates($FilteredUpdates)
-
-$FilteredUpdates = @()
-$AllUpdates = $Wsus.GetUpdates() | Where IsDeclined -eq $False
-
-Write-Host "* 更新プログラムを拒否"
-Write-Host ("** 最新から" + $DeclineUpgradesProgramsLeft + "つより古い機能更新プログラムを削除する")
-$WsusUpgradesProgramsCount = 1
-$AllUpdates | Where UpdateClassificationTitle -eq "Upgrades" | Sort CreationDate -Descending | Foreach-Object {
-    If ($WsusUpgradesProgramsCount++ -gt $DeclineUpgradesProgramsLeft){
-        $_.Decline()
-        #Write-Host ("*** 拒否済み: " + $_.Title)
-    }
+If (Test-Path $DummyFilePath){
+	Remove-Item -Path $DummyFilePath -Force | Out-Null
 }
 
-Write-Host "** 更新プログラムを拒否するためのフィルターを作成"
-#Upgrades に含まれる更新プログラムをすべて拒否
-# $FilteredUpdates += $AllUpdates | Where UpdateClassificationTitle -eq "Upgrades"
-#Office 2016 に含まれ、64ビット版 を含む更新プログラムをすべて拒否
-# $FilteredUpdates += $AllUpdates | Where {$_.Title -like "*64 ビット版*" -and $_.Title -notlike "*32 ビット版*" -and $_.ProductTitles -eq "Office 2016"}
-Get-Content -Path $FilterFileName | ForEach{
-    $FilteredUpdates += $AllUpdates | Where LegacyName -like $_
-}
 
-Decline-WsusUpdates($FilteredUpdates)
+#Write-Host "* 更新プログラムを拒否"
+Write-Host ("** 置き換えられた更新プログラムを拒否")
+$FilteredUpdates = @()
+$FilteredUpdates = $Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
+Decline-QualityUpdates($FilteredUpdates)
+
+
+Write-Host ("** 機能更新プログラムを拒否")
+$FilteredUpdates = @()
+$AllUpdates = $Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.UpdateClassificationTitle -eq "Upgrades"}
+$FeatureUpdatesFilters = Get-Content -Path $FeatureUpdatesFilterFileName
+$AllUpdates | ForEach-Object {
+	$UpdateInformation = $_
+	$FeatureUpdatesFilters | ForEach-Object {
+		If ($UpdateInformation.GetInstallableItems().Files.Name -like $_){
+			$FilteredUpdates += $UpdateInformation
+		}
+	}
+}
+Decline-FeatureUpdates($FilteredUpdates)
+
+
+Write-Host "** 品質更新プログラムを拒否"
+$FilteredUpdates = @()
+$AllUpdates = $Wsus.GetUpdates() | Where-Object IsDeclined -eq $False
+#Officeの更新プログラムのメンテナンス
+#Office 2016 64ビット版 の更新プログラムをすべて拒否
+# $FilteredUpdates += $AllUpdates | Where-Object {$_.Title -like "*64 ビット版*" -and $_.Title -notlike "*32 ビット版*" -and $_.ProductTitles -eq "Office 2016"}
+Get-Content -Path $QualityUpdatesFilterFileName | ForEach-Object {
+    $FilteredUpdates += $AllUpdates | Where-Object LegacyName -like $_
+}
+Decline-QualityUpdates($FilteredUpdates)
+
+
 Cleanup-Wsus
-start "C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\SQLCMD.EXE" ("-S", "np:\\.\pipe\Microsoft##WID\tsql\query", "-i", "C:\Tools\Scripts\Wsus\Scripts-WsusDBMaintenance.sql")
+Start $SqlCmdPath ("-S", $SqlServerPath, "-i", $WsusDBMaintenanceScriptPath)
 
 
 #更新プログラムの一覧
-#$Wsus.GetUpdates() | Where IsDeclined -eq $False | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "拒否された更新以外のすべて"
-#$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
-#$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
-#$Wsus.GetUpdates() | Where {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Export-Csv 未承認の更新プログラム.csv -Encoding UTF8
+#$Wsus.GetUpdates() | Where-Object IsDeclined -eq $False | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "拒否された更新以外のすべて"
+#$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
+#$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
+#$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Export-Csv 未承認の更新プログラム.csv -Encoding UTF8
 
 #スクリプトが正常に動作するために、作業用のダミーファイルを作成する
-FsUtil File CreateNew $DummyFileName 4294967296 | Out-Null
+FsUtil File CreateNew $DummyFilePath $DummyFileSize | Out-Null
