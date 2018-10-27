@@ -32,8 +32,8 @@
     <Content Include="Filter-QU-Windows 10 LTSB 2016, 64ビット版.txt" />
     <Content Include="Filter-QU-Windows 10, バージョン 1703 64ビット版.txt" />
     <Content Include="Filter-QU-Windows 10, バージョン 1709 64ビット版.txt" />
-    <Content Include="Filter-FU-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-FU-Windows 10, バージョン 1809.txt" />
+    <Content Include="Filter-FU-Windows 10, バージョン 1803 CLIENTBUSINESS.txt" />
+    <Content Include="Filter-FU-Windows 10, バージョン 1809 CLIENTBUSINESS.txt" />
     <Content Include="Filter-QU-Windows 10, バージョン 1809 64ビット版.txt" />
     <Content Include="Filter-QU-Windows 10, バージョン 1803 64ビット版.txt" />
     <Content Include="Filter-Windows 8.1 64ビット版.txt" />
