@@ -1,14 +1,14 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
 #
-# 20181005 WSUS から不要な更新プログラムを拒否する
+# 20181027 WSUS から不要な更新プログラムを拒否する
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、直接WSUSかスクリプトのメンテナンスが必要になることを理解してください。
 # このスクリプトを利用したことによる問題に対する責任は一切負いません。実行する前に必ず検証をしてください。
 
 #最初に変数をメンテナンスしてください
-$QualityUpdatesFilterFileName = "C:\Tools\Scripts\Wsus\Filter-QU-対象の定義ファイル名.txt"
 $FeatureUpdatesFilterFileName = "C:\Tools\Scripts\Wsus\Filter-FU-対象の定義ファイル名.txt"
+$QualityUpdatesFilterFileName = "C:\Tools\Scripts\Wsus\Filter-QU-対象の定義ファイル名.txt"
 $DummyFilePath = "C:\Tools\Scripts\Wsus\Dummy.tmp"
 $DummyFileSize = 4294967296
 $WsusDBMaintenanceScriptPath = "C:\Tools\Scripts\Wsus\Scripts-WsusDBMaintenance.sql"
