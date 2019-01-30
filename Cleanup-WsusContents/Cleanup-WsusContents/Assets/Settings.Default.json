@@ -1,0 +1,27 @@
+{
+  "Wsus": {
+    "Server": "localhost",
+    "Port": 8530
+  },
+  "DeclineRule": {
+    "FeatureUpdatesFilter": [
+      { "FileNames": "Windows 10, バージョン 1809.txt" }
+    ],
+    "QualityUpdatesFilter": [
+      { "FileNames": "Windows 7 Service Pack 1 32ビット版.txt" },
+      { "FileNames": "Windows 8.1 64ビット版.txt" },
+      { "FileNames": "Windows 10, バージョン 1809 64ビット版.txt" }
+    ],
+    "IsDeclineMsOfficeUpdates": false,
+    "TargetMsOfficeArchitecture": "64 ビット版"
+  },
+  "MaintenanceSql": {
+    "SqlCmdPath": "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\130\\Tools\\Binn\\SQLCMD.EXE",
+    "ServerPath": "np:\\\\.\\pipe\\Microsoft##WID\\tsql\\query",
+    "ScriptPath": "Scripts\\Scripts-WsusDBMaintenance.sql"
+  },
+  "ReservedFile": {
+    "Path": "D:\\Wsus\\Dummy.tmp",
+    "Size": "4294967296"
+  }
+}

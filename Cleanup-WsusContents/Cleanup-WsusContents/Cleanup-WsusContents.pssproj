@@ -29,27 +29,36 @@
     <Compile Include="Cleanup-WsusContents.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Filter-FU-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-FU-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filter-FU-CLIENTCONSUMER-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-FU-CLIENTCONSUMER-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filter-QU-x64-Windows 10 LTSB 2016.txt" />
-    <Content Include="Filter-QU-x64-Windows 10, バージョン 1703.txt" />
-    <Content Include="Filter-QU-x64-Windows 10, バージョン 1709.txt" />
-    <Content Include="Filter-FU-CLIENTBUSINESS-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-FU-CLIENTBUSINESS-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filter-QU-x86-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filter-QU-x86-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-QU-x64-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filter-QU-x64-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filter-Windows 8.1 64ビット版.txt" />
-    <Content Include="Scripts-WSUS DB インデックスの再構成.lnk" />
-    <Content Include="Scripts-WSUS メモリーサイズ調整 %288GB環境向け%29.lnk" />
-    <Content Include="Scripts-WsusDBMaintenance.sql" />
-    <Content Include="Scripts-WsusMemoryConfigure.sql" />
-    <Content Include="Task-Cleanup-WsusContents %28Monthly%29.xml" />
-    <Content Include="Task-Cleanup-WsusContents %28Weekly%29.xml" />
+    <Content Include="Assets\Settings.Default.json" />
+    <Content Include="Filters\FeatureUpdates\CLIENTBUSINESS-Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\CLIENTBUSINESS-Windows 10, バージョン 1809.txt" />
+    <Content Include="Filters\FeatureUpdates\CLIENTCONSUMER-Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\CLIENTCONSUMER-Windows 10, バージョン 1809.txt" />
+    <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1809.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10 LTSB 2016 64ビット版のみ.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1709 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1803 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1803 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1809 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1809 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 7 Service Pack 1 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 8.1 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 8.1 64ビット版.txt" />
+    <Content Include="Assets\Scripts-WsusDBMaintenance.sql" />
+    <Content Include="Assets\Scripts-WsusMemoryConfigure.sql" />
+    <Content Include="Assets\Task-Cleanup-WsusContents %28Monthly%29.xml" />
+    <Content Include="Assets\Task-Cleanup-WsusContents %28Weekly%29.xml" />
+    <Content Include="Install.bat" />
+    <Content Include="WSUS DB インデックスの再構成.lnk" />
+    <Content Include="WSUS メモリーサイズ調整 %28メモリー実装容量が8GB～環境向け%29.lnk" />
     <Content Include="Wsusコンテンツのクリーンアップ.lnk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Filters\" />
+    <Folder Include="Filters\FeatureUpdates\" />
+    <Folder Include="Filters\QualityUpdates\" />
+    <Folder Include="Assets\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
