@@ -22,6 +22,10 @@
   },
   "ReservedFile": {
     "Path": "D:\\Wsus\\Dummy.tmp",
-    "Size": "4294967296"
+    "Size": 4294967296
+  },
+  "Log": {
+    "IsLogging": true,
+    "MaximumCount": 10
   }
 }

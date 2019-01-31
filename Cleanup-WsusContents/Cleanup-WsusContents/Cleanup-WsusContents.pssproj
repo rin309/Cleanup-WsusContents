@@ -59,6 +59,7 @@
     <Folder Include="Filters\FeatureUpdates\" />
     <Folder Include="Filters\QualityUpdates\" />
     <Folder Include="Assets\" />
+    <Folder Include="Logs\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
