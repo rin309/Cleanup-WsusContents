@@ -49,7 +49,6 @@
     <Content Include="Assets\Scripts-WsusMemoryConfigure.sql" />
     <Content Include="Assets\Task-Cleanup-WsusContents %28Monthly%29.xml" />
     <Content Include="Assets\Task-Cleanup-WsusContents %28Weekly%29.xml" />
-    <Content Include="Install.bat" />
     <Content Include="WSUS DB インデックスの再構成.lnk" />
     <Content Include="WSUS メモリーサイズ調整 %28メモリー実装容量が8GB～環境向け%29.lnk" />
     <Content Include="Wsusコンテンツのクリーンアップ.lnk" />
