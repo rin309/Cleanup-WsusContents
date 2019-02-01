@@ -17,7 +17,7 @@
     "TargetMsOfficeArchitecture": "64 ビット版"
   },
   "MaintenanceSql": {
-    "SqlCmdPath": "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\10\\Tools\\Binn\\SQLCMD.EXE",
+    "SqlCmdPath": "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\SQLCMD.EXE",
     "ServerPath": "np:\\\\.\\pipe\\Microsoft##WID\\tsql\\query",
     "ScriptPath": "Scripts\\Scripts-WsusDBMaintenance.sql"
   },
