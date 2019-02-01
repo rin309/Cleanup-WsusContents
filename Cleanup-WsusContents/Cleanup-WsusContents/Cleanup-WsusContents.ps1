@@ -2,61 +2,67 @@
 #Requires -RunAsAdministrator
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
 #
-# 20190201 WSUS から不要な更新プログラムを拒否する
+# 20190202 WSUS から不要な更新プログラムを拒否する
+# Cleanup-WsusContents (CWS)
 #
-# このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、直接WSUSかスクリプトのメンテナンスが必要になることを理解してください。
+# このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
 # このスクリプトを利用したことによる問題に対する責任は一切負いません。実行する前に必ず検証をしてください。
 
 #最初に Settings.Current.json をメンテナンスしてください
 $CuttentSettingsPath = "Settings.Current.json"
 $DefaultSettingsPath = "Assets\Settings.Default.json"
-If (!(Test-Path $CuttentSettingsPath)){
-	Copy-Item $DefaultSettingsPath $CuttentSettingsPath
-}
+
 
 Function Load-Settings(){
-	$Settings = Get-Content $CuttentSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
-	$DefaultSettings = Get-Content $DefaultSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
-	
-	$FeatureUpdatesFilterFileNames = $Settings.DeclineRule.FeatureUpdatesFilter.FileNames
+    If (Test-Path $CuttentSettingsPath){
+        $Settings = Get-Content $CuttentSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
+        $Script:FeatureUpdatesFilterFileNames = $Settings.DeclineRule.FeatureUpdatesFilter.FileNames
+        $Script:QualityUpdatesFilterFileNames = $Settings.DeclineRule.QualityUpdatesFilter.FileNames
+        $Script:DummyFileName = $Settings.ReservedFile.Name
+        $Script:DummyFileSize = $Settings.ReservedFile.Size
+        $Script:WsusDBMaintenanceScriptPath = $Settings.MaintenanceSql.ScriptPath
+        $Script:SqlCmdPath = $Settings.MaintenanceSql.SqlCmdPath
+        $Script:SqlServerPath = $Settings.MaintenanceSql.ServerPath
+        $Script:IsDeclineMsOfficeUpdates = $Settings.DeclineRule.IsDeclineMsOfficeUpdates
+        $Script:TargetMsOfficeArchitecture = $Settings.DeclineRule.TargetMsOfficeArchitecture
+        $Script:WsusServer = $Settings.Wsus.Server
+        $Script:WsusPort = $Settings.Wsus.Port
+		$Script:WsusInstallDirectory = $Settings.Wsus.InstallDirectory
+        $Script:IsLogging = $Settings.Log.IsLogging
+        $Script:LogMaximumCount = $Settings.Log.MaximumCount
+    }
+    $DefaultSettings = Get-Content $DefaultSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
 	If ($FeatureUpdatesFilterFileNames -eq $null) {$FeatureUpdatesFilterFileNames = $DefaultSettings.DeclineRule.FeatureUpdatesFilter.FileNames}
-	$QualityUpdatesFilterFileNames = $Settings.DeclineRule.QualityUpdatesFilter.FileNames
 	If ($QualityUpdatesFilterFileNames -eq $null) {$QualityUpdatesFilterFileNames = $DefaultSettings.DeclineRule.QualityUpdatesFilter.FileNames}
-	$DummyFilePath = $Settings.ReservedFile.Path
-	If ($DummyFilePath -eq $null) {$DummyFilePath = $DefaultSettings.ReservedFile.Path}
-	$DummyFileSize = $Settings.ReservedFile.Size
+	If ($DummyFileName -eq $null) {$DummyFileName = $DefaultSettings.ReservedFile.Name}
 	If ($DummyFileSize -eq $null) {$DummyFileSize = $DefaultSettings.ReservedFile.Size}
-	$WsusDBMaintenanceScriptPath = $Settings.MaintenanceSql.ScriptPath
 	If ($WsusDBMaintenanceScriptPath -eq $null) {$WsusDBMaintenanceScriptPath = $DefaultSettings.MaintenanceSql.ScriptPath}
-	$SqlCmdPath = $Settings.MaintenanceSql.SqlCmdPath
 	If ($SqlCmdPath -eq $null) {$SqlCmdPath = $DefaultSettings.MaintenanceSql.SqlCmdPath}
-	$SqlServerPath = $Settings.MaintenanceSql.ServerPath
 	If ($SqlServerPath -eq $null) {$SqlServerPath = $DefaultSettings.MaintenanceSql.ServerPath}
-	$IsDeclineMsOfficeUpdates = $Settings.DeclineRule.IsDeclineMsOfficeUpdates
 	If ($IsDeclineMsOfficeUpdates -eq $null) {$IsDeclineMsOfficeUpdates = $DefaultSettings.DeclineRule.IsDeclineMsOfficeUpdates}
-	$TargetMsOfficeArchitecture = $Settings.DeclineRule.TargetMsOfficeArchitecture
 	If ($TargetMsOfficeArchitecture -eq $null) {$TargetMsOfficeArchitecture = $DefaultSettings.DeclineRule.TargetMsOfficeArchitecture}
-	$WsusServer = $Settings.Wsus.Server
 	If ($WsusServer -eq $null) {$WsusServer = $DefaultSettings.Wsus.Server}
-	$WsusPort = $Settings.Wsus.Port
 	If ($WsusPort -eq $null) {$WsusPort = $DefaultSettings.Wsus.Port}
-	$IsLogging = $Settings.Log.IsLogging
 	If ($IsLogging -eq $null) {$IsLogging = $DefaultSettings.Log.IsLogging}
-	$LogMaximumCount = $Settings.Log.MaximumCount
 	If ($LogMaximumCount -eq $null) {$LogMaximumCount = $DefaultSettings.Log.MaximumCount}
 
-	Write-Host $FeatureUpdatesFilterFileNames -Verbose
-	Write-Host $QualityUpdatesFilterFileNames -Verbose
-	Write-Host $DummyFilePath -Verbose
-	Write-Host $WsusDBMaintenanceScriptPath -Verbose
-	Write-Host $SqlCmdPath -Verbose
-	Write-Host $SqlServerPath -Verbose
-	Write-Host $IsDeclineMsOfficeUpdates -Verbose
-	Write-Host $TargetMsOfficeArchitecture -Verbose
-	Write-Host $WsusServer -Verbose
-	Write-Host $WsusPort -Verbose
-	Write-Host $IsLogging -Verbose
-	Write-Host $LogMaximumCount -Verbose
+	$Script:DummyFilePath = Join-Path $WsusInstallDirectory $DummyFileName
+}
+Function Check-Settings(){
+	Write-Host "FeatureUpdatesFilterFileNames: $FeatureUpdatesFilterFileNames" -Verbose
+	Write-Host "QualityUpdatesFilterFileNames: $QualityUpdatesFilterFileNames" -Verbose
+	Write-Host "DummyFileName: $DummyFileName" -Verbose
+	Write-Host "WsusDBMaintenanceScriptPath: $WsusDBMaintenanceScriptPath" -Verbose
+	Write-Host "SqlCmdPath: $SqlCmdPath" -Verbose
+	Write-Host "SqlServerPath: $SqlServerPath" -Verbose
+	Write-Host "IsDeclineMsOfficeUpdates: $IsDeclineMsOfficeUpdates" -Verbose
+	Write-Host "TargetMsOfficeArchitecture: $TargetMsOfficeArchitecture" -Verbose
+	Write-Host "WsusServer: $WsusServer" -Verbose
+	Write-Host "WsusPort: $WsusPort" -Verbose
+	Write-Host "IsLogging: $IsLogging" -Verbose
+	Write-Host "LogMaximumCount: $LogMaximumCount" -Verbose
+
+    Clear-Host
 }
 #特定の機能更新プログラムを拒否
 Function Decline-FeatureUpdates($FilteredUpdates){
@@ -103,34 +109,41 @@ Function Cleanup-Wsus(){
 }
 Function Start-Logging(){
 	If ($IsLogging){
-		Start-Transcript "Logs\$StartTime\1 Transcript.log"
-		Copy-Item $CuttentSettingsPath "Logs\$StartTime\Settings.Current.json" -Force | Out-Null
-		Copy-Item $DefaultSettingsPath "Logs\$StartTime\Settings.Default.json" -Force | Out-Null
-		$StartTime = (Get-Date –F s).Replace(':','')
-		$LogDirectory = "Logs\$StartTime\"
+        $StartTime = (Get-Date –F s).Replace(':','')
+		$Script:LogDirectory = "Logs\$StartTime\"
 		New-Item $LogDirectory -ItemType Directory -Force | Out-Null
+        Start-Transcript "$LogDirectory\1 Transcript.log"
+
+		Copy-Item $CuttentSettingsPath "$LogDirectory\Settings.Current.json" -Force | Out-Null
+		Copy-Item $DefaultSettingsPath "$LogDirectory\Settings.Default.json" -Force | Out-Null
 		$LogsDirectoryChildItems = (Get-ChildItem "Logs\" -Directory -Filter "20*")
 		If ($LogsDirectoryChildItems.Length -gt $LogMaximumCount){
 			ForEach ($LogsDirectoryChildItem in $LogsDirectoryChildItems){
 				$LogsDirectoryChildItem | Remove-Item
-				If ((Get-ChildItem "Logs\" -Directory -Filter "20*").Length -le $LogMaximumCount){
+				#西暦上2桁"20"から始まるディレクトリを検索
+                If ((Get-ChildItem "Logs\" -Directory -Filter "20*").Length -le $LogMaximumCount){
 					break
 				}
 			}
 		}
+
+		Get-PSDrive -Name $WsusInstallDirectory.SubString(0,1)
 	}
 }
 
-Start-Logging
 Load-Settings
+Start-Logging
+Check-Settings
 
 Write-Host "* WSUSへ接続" -Verbose
-$Wsus = Get-WsusServer -Name $Settings.Wsus.Server -PortNumber $Settings.Wsus.Port
+$Wsus = Get-WsusServer -Name $WsusServer -PortNumber $WsusPort
+Clear-Host
 
 Write-Host "空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイルを削除する" -Verbose
 If (Test-Path $DummyFilePath){
 	Remove-Item -Path $DummyFilePath -Force | Out-Null
 }
+Clear-Host
 
 
 Write-Host "* 更新プログラムを拒否" -Verbose
@@ -139,7 +152,7 @@ $FilteredUpdates = @()
 $FilteredUpdates = $Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsSuperseded -eq $True -and $_.HasSupersededUpdates -eq $False}
 Decline-QualityUpdates($FilteredUpdates)
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "Logs\$StartTime\2-1 拒否済み - 置き換えられた更新プログラム.csv" -Encoding UTF8
+	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "$LogDirectory\2-1 拒否済み - 置き換えられた更新プログラム.csv" -Encoding UTF8
 }
 
 
@@ -159,7 +172,7 @@ ForEach ($FeatureUpdatesFilterFileName in $FeatureUpdatesFilterFileNames){
 }
 Decline-FeatureUpdates($FilteredUpdates)
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "Logs\$StartTime\2-2 拒否済み - 機能更新プログラム.csv" -Encoding UTF8
+	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "$LogDirectory\2-2 拒否済み - 機能更新プログラム.csv" -Encoding UTF8
 }
 
 Write-Host "** 品質更新プログラムを拒否" -Verbose
@@ -175,14 +188,16 @@ If ($IsDeclineMsOfficeUpdates){
 	$FilteredUpdates += $AllUpdates | Where-Object {$_.Title -like "*$TargetMsOfficeArchitecture*" -and $_.ProductTitles -like "Office *"}
 }
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "Logs\$StartTime\2-3 拒否済み - 品質更新プログラム.csv" -Encoding UTF8
+	$FilteredUpdates | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "$LogDirectory\2-3 拒否済み - 品質更新プログラム.csv" -Encoding UTF8
 }
 Decline-QualityUpdates($FilteredUpdates)
+Clear-Host
 
 
 Write-Host "* WSUSのクリーンアップ" -Verbose
 Cleanup-Wsus
 Start $SqlCmdPath ("-S", $SqlServerPath, "-i", $WsusDBMaintenanceScriptPath)
+Clear-Host
 
 
 #更新プログラムの一覧
@@ -190,10 +205,13 @@ Start $SqlCmdPath ("-S", $SqlServerPath, "-i", $WsusDBMaintenanceScriptPath)
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
 If ($IsLogging){
-	$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "Logs\$StartTime\2-4 未承認の更新プログラム.csv" -Encoding UTF8
+	$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "$LogDirectory\3 未承認の更新プログラム.csv" -Encoding UTF8
+	Get-PSDrive -Name $WsusInstallDirectory.SubString(0,1)
 }
 
 Write-Host "空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイルを作成する" -Verbose
 FsUtil File CreateNew $DummyFilePath $DummyFileSize | Out-Null
 
-Stop-Transcript
+If ($IsLogging){
+	Stop-Transcript
+}

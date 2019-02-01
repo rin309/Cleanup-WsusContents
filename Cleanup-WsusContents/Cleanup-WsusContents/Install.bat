@@ -1,8 +1,32 @@
 @echo off
 cls
 set InstallDirectory=C:\Tools\Scripts\Wsus
+
+echo ODBC Driverとsqlcmd Utilityが必要になります
+echo - https://docs.microsoft.com/ja-jp/sql/tools/sqlcmd-utility
+echo △sqlcmd 15をインストールするにはODBC 13.1とODBC 17のインストールが必要なようです
+echo.
+echo.
 echo このスクリプトを %InstallDirectory% にコピーします
-pause
+echo - SQLのメンテナンスなどが動作しませんので、WSUSがインストールされているサーバーにて実行してください
+echo - Settings.Current.jsonのメンテナンスは必須です
+echo -- 今後のWindows 10機能更新プログラムのリリースのたびにメンテナンスが必要であることを理解してください
+echo - 日曜日2:00にバックグラウンドで実行するタスクを登録します
+echo - ログファイルが %InstallDirectory%\Logs\ に保存されますので、実行前後で参考にしてください
+echo.
+echo.
+echo インストールディレクトリの変更をした場合は、以下のファイルの修正が必要です
+echo - Wsusコンテンツのクリーンアップ.lnk
+echo - Assets\Task-Cleanup-WsusContents (Monthly).xml
+echo.
+echo (下記ファイルは通常は使用しませんので適宜修正してください)
+echo - WSUS DB インデックスの再構成.lnk
+echo - WSUS メモリーサイズ調整 (メモリー実装容量が8GB～環境向け).lnk
+echo - Assets\Task-Cleanup-WsusContents (Weekly).xml
+echo.
+echo.
+echo インストールを始めてもよい場合は何かキーを押してください...
+pause > nul
 
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
@@ -11,18 +35,28 @@ cls
 echo 既に設定ファイルがある場合、上書きされないことをおすすめします
 copy "Assets\Settings.Default.json" "Settings.Current.json"
 cls
-explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\
-explorer /n,"%InstallDirectory%\Filters\QualityUpdates\
+@rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
+@rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"
+
 echo 環境・運用に応じて設定を記述してください
-echo .
-echo - FeatureUpdatesFilter.FileNames: 既定でWindows 10, バージョン 1809以外の機能更新プログラムを拒否します
+echo.
+echo - FeatureUpdatesFilter.FileNames: 既定でリテール版のWindows 10の機能更新プログラムとWindows 10, バージョン 1809以外の機能更新プログラムを拒否します
+echo -- %InstallDirectory%\Filters\FeatureUpdates\ のファイル名を追加することにより、対象を増やすことができます
 echo - QualityUpdatesFilter.FileNames: 既定でWindows 7 Service Pack 1 32ビット版, Windows 8.1 64ビット版, Windows 10, バージョン 1809 64ビット版以外の品質更新プログラムを拒否します
-echo - IsDeclineMsOfficeUpdates: 既定では TargetMsOfficeArchitecture で指定したOffice向け更新プログラムの拒否が無効です
+echo -- %InstallDirectory%\Filters\QualityUpdates\ のファイル名を追加することにより、対象を増やすことができます
+echo - IsDeclineMsOfficeUpdates: 既定では TargetMsOfficeArchitecture で指定したOffice向け更新プログラムの拒否が有効です
 echo - TargetMsOfficeArchitecture: 既定では64ビット版のOffice向け更新プログラムが拒否されます
-echo - ReservedFile.Path: [空き領域が少なくなりがちな環境向け] WSUSのコンテンツのルートディレクトリを指定します
-echo - ReservedFile.Size: [空き領域が少なくなりがちな環境向け] 生成するファイルサイズ (既定で4GB)
+echo - ReservedFile: 設定は暫定処置です。同パーティション内にほかのシステムが同居する場合はFSRMによるクォーターなどを検討してください。
+echo.
+echo.
+ping localhost -n 4 > nul
 notepad "Settings.Current.json"
 cls
 
 SchTasks /Create /Xml "%InstallDirectory%\Assets\Task-Cleanup-WsusContents (Weekly).xml" /TN "Cleanup-WsusContents"
-copy /y "Wsusコンテンツのクリーンアップ.lnk" "%UserProfile%\Desktop\Wsusコンテンツのクリーンアップ.lnk"
+copy /y "Wsusコンテンツのクリーンアップ.lnk" "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Wsusコンテンツのクリーンアップ.lnk"
+cls
+
+初回実行には時間がかかる場合があります。検証も含め、あらかじめ実行しておくことをおすすめします。
+ping localhost -n 4 > nul
+explorer /n,"%InstallDirectory%\Wsusコンテンツのクリーンアップ.lnk"
