@@ -2,17 +2,7 @@
 cls
 set InstallDirectory=C:\Tools\Scripts\Wsus
 
-echo SQLのメンテナンスなどが動作しませんので、このツールはWSUSがインストールされているサーバーにて実行されることをおすすめします
-echo また、SQLのメンテナンスにはODBC Driverとsqlcmd Utilityが必要になります
-echo.
-echo 事前にインストールを済ませてください
-echo - https://docs.microsoft.com/ja-jp/sql/tools/sqlcmd-utility
-echo △sqlcmd 15をインストールするにはODBC 13.1とODBC 17のインストールが必要なようです
-echo.
-echo.
-pause
-cls
-echo %InstallDirectory% へ Cleanup-WsusContents.ps1 をコピーします
+echo %InstallDirectory% へ Cleanup-WsusContents.ps1 をコピーします (上書きインストール)
 echo - 今後のWindows 10機能更新プログラムのリリースのたびにメンテナンスが必要であることを理解してください
 echo - 日曜日2:00にバックグラウンドで実行するタスクを登録します
 echo - ログファイルが %InstallDirectory%\Logs\ に保存されますので、実行前後で参考にしてください
@@ -21,25 +11,17 @@ echo インストールディレクトリの変更をした場合は、以下のファイルの修正が必要です
 echo - Wsusコンテンツのクリーンアップ.lnk
 echo - Assets\Task-Cleanup-WsusContents (Monthly).xml
 echo.
-echo (下記ファイルは通常は使用しませんので適宜修正してください)
-echo - WSUS DB インデックスの再構成.lnk
-echo - WSUS メモリーサイズ調整 (メモリー実装容量が8GB～環境向け).lnk
-echo - Assets\Task-Cleanup-WsusContents (Weekly).xml
-echo.
 echo.
 echo インストールを始めてもよい場合は何かキーを押してください...
 pause > nul
 
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
-del Cleanup-WsusContents.pssproj
-del Install.bat
-del Upgrades.bat
 cls
 
-echo 既に設定ファイルがある場合、上書きされないことをおすすめします
-copy "Assets\Settings.Default.json" "Settings.Current.json"
-cls
+@rem echo 既に設定ファイルがある場合、上書きされないことをおすすめします
+@rem copy "Assets\Settings.Default.json" "Settings.Current.json"
+@rem cls
 @rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
 @rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"
 
@@ -58,10 +40,10 @@ ping localhost -n 4 > nul
 notepad "Settings.Current.json"
 cls
 
-SchTasks /Create /Xml "%InstallDirectory%\Assets\Task-Cleanup-WsusContents (Weekly).xml" /TN "Cleanup-WsusContents"
-copy /y "Wsusコンテンツのクリーンアップ.lnk" "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Wsusコンテンツのクリーンアップ.lnk"
-cls
+@rem SchTasks /Create /Xml "%InstallDirectory%\Assets\Task-Cleanup-WsusContents (Weekly).xml" /TN "Cleanup-WsusContents"
+@rem copy /y "Wsusコンテンツのクリーンアップ.lnk" "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Wsusコンテンツのクリーンアップ.lnk"
+@rem cls
 
-echo 初回実行には時間がかかる場合があります。検証も含め、あらかじめ実行しておくことをおすすめします。
-ping localhost -n 4 > nul
-explorer /n,"%InstallDirectory%\Wsusコンテンツのクリーンアップ.lnk"
+@rem echo 初回実行には時間がかかる場合があります。検証も含め、あらかじめ実行しておくことをおすすめします。
+@rem ping localhost -n 4 > nul
+@rem explorer /n,"%InstallDirectory%\Wsusコンテンツのクリーンアップ.lnk"

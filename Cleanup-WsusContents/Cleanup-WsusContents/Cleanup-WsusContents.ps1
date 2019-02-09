@@ -1,8 +1,9 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
+Set-Location -Path (Split-Path -Parent ($MyInvocation.MyCommand.Path))
 #
-# 20190202 WSUS から不要な更新プログラムを拒否する
+# 20190209 WSUS から不要な更新プログラムを拒否する
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -14,7 +15,9 @@ $DefaultSettingsPath = "Assets\Settings.Default.json"
 
 
 Function Load-Settings(){
-    If (Test-Path $CuttentSettingsPath){
+    $SqlServerName = $SqlServerPath.Replace("$SqlServerName" ,(Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("SqlServerName"))
+	
+	If (Test-Path $CuttentSettingsPath){
         $Settings = Get-Content $CuttentSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
         $Script:FeatureUpdatesFilterFileNames = $Settings.DeclineRule.FeatureUpdatesFilter.FileNames
         $Script:QualityUpdatesFilterFileNames = $Settings.DeclineRule.QualityUpdatesFilter.FileNames
@@ -31,7 +34,16 @@ Function Load-Settings(){
         $Script:IsLogging = $Settings.Log.IsLogging
         $Script:LogMaximumCount = $Settings.Log.MaximumCount
     }
-    $DefaultSettings = Get-Content $DefaultSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
+	If ($WsusInstallDirectory -eq $null) {
+		$Script:WsusInstallDirectory = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("ContentDir")
+	}
+    If ($SqlCmdPath -eq $null) {
+		$ODBCToolsPath = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\150\Tools\ClientSetup").GetValue("ODBCToolsPath")
+		$Script:SqlCmdPath = Join-Path $ODBCToolsPath "SQLCMD.EXE"
+	}
+	$Script:SqlServerPath = $SqlServerPath.Replace("$SqlServerName",$SqlServerName)
+
+	$DefaultSettings = Get-Content $DefaultSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
 	If ($FeatureUpdatesFilterFileNames -eq $null) {$FeatureUpdatesFilterFileNames = $DefaultSettings.DeclineRule.FeatureUpdatesFilter.FileNames}
 	If ($QualityUpdatesFilterFileNames -eq $null) {$QualityUpdatesFilterFileNames = $DefaultSettings.DeclineRule.QualityUpdatesFilter.FileNames}
 	If ($DummyFileName -eq $null) {$DummyFileName = $DefaultSettings.ReservedFile.Name}
@@ -59,6 +71,7 @@ Function Check-Settings(){
 	Write-Host "TargetMsOfficeArchitecture: $TargetMsOfficeArchitecture" -Verbose
 	Write-Host "WsusServer: $WsusServer" -Verbose
 	Write-Host "WsusPort: $WsusPort" -Verbose
+	Write-Host "WsusInstallDirectory: $WsusInstallDirectory" -Verbose
 	Write-Host "IsLogging: $IsLogging" -Verbose
 	Write-Host "LogMaximumCount: $LogMaximumCount" -Verbose
 
