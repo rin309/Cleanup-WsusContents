@@ -15,7 +15,7 @@ cls
 echo %InstallDirectory% へ Cleanup-WsusContents.ps1 をコピーします
 echo - 今後のWindows 10機能更新プログラムのリリースのたびにメンテナンスが必要であることを理解してください
 echo - 日曜日2:00にバックグラウンドで実行するタスクを登録します
-echo - ログファイルが %InstallDirectory%\Logs\ に保存されますので、実行前後で参考にしてください
+echo - Cleanup-WsusContents.ps1 のログファイルは %InstallDirectory%\Logs\ に保存されますので、定期的に確認されることをおすすめします
 echo.
 echo インストールディレクトリの変更をした場合は、以下のファイルの修正が必要です
 echo - Wsusコンテンツのクリーンアップ.lnk

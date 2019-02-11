@@ -3,7 +3,7 @@
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
 Set-Location -Path (Split-Path -Parent ($MyInvocation.MyCommand.Path))
 #
-# 20190209 WSUS から不要な更新プログラムを拒否する
+# 20190211 WSUS から不要な更新プログラムを拒否する
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -209,11 +209,17 @@ Clear-Host
 
 Write-Host "* WSUSのクリーンアップ" -Verbose
 Cleanup-Wsus
-Start $SqlCmdPath ("-S", $SqlServerPath, "-i", $WsusDBMaintenanceScriptPath)
+if (Test-Path $SqlCmdPath){
+	Start $SqlCmdPath ("-S", $SqlServerPath, "-i", $WsusDBMaintenanceScriptPath)
+}
+Else{
+	Write-Host "sqlcmd Utility が見つかりませんでしたので、SQLデータベースの最適化をしていません"
+}
+
 Clear-Host
 
 
-#更新プログラムの一覧
+#更新プログラムの一覧をGridViewで確認する
 #$Wsus.GetUpdates() | Where-Object IsDeclined -eq $False | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "拒否された更新以外のすべて"
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
@@ -222,8 +228,13 @@ If ($IsLogging){
 	Get-PSDrive -Name $WsusInstallDirectory.SubString(0,1)
 }
 
-Write-Host "空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイルを作成する" -Verbose
-FsUtil File CreateNew $DummyFilePath $DummyFileSize | Out-Null
+If ($DummyFileSize -ne 0){
+	Write-Host "空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイルを作成する" -Verbose
+	FsUtil File CreateNew $DummyFilePath $DummyFileSize | Out-Null
+}
+Else{
+	#ファイルサイズが0の場合は実行しない
+}
 
 If ($IsLogging){
 	Stop-Transcript

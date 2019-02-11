@@ -4,12 +4,6 @@ set InstallDirectory=C:\Tools\Scripts\Wsus
 
 echo %InstallDirectory% へ Cleanup-WsusContents.ps1 をコピーします (上書きインストール)
 echo - 今後のWindows 10機能更新プログラムのリリースのたびにメンテナンスが必要であることを理解してください
-echo - 日曜日2:00にバックグラウンドで実行するタスクを登録します
-echo - ログファイルが %InstallDirectory%\Logs\ に保存されますので、実行前後で参考にしてください
-echo.
-echo インストールディレクトリの変更をした場合は、以下のファイルの修正が必要です
-echo - Wsusコンテンツのクリーンアップ.lnk
-echo - Assets\Task-Cleanup-WsusContents (Monthly).xml
 echo.
 echo.
 echo インストールを始めてもよい場合は何かキーを押してください...
@@ -22,12 +16,6 @@ del Install.bat
 del Upgrades.bat
 move "Assets\Uninstall.bat" "Uninstall.bat"
 cls
-
-@rem echo 既に設定ファイルがある場合、上書きされないことをおすすめします
-@rem copy "Assets\Settings.Default.json" "Settings.Current.json"
-@rem cls
-@rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
-@rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"
 
 echo 環境・運用に応じて Settings.Current.json を記述してください
 echo.
@@ -43,11 +31,3 @@ echo.
 ping localhost -n 4 > nul
 notepad "Settings.Current.json"
 cls
-
-@rem SchTasks /Create /Xml "%InstallDirectory%\Assets\Task-Cleanup-WsusContents (Weekly).xml" /TN "Cleanup-WsusContents"
-@rem copy /y "Wsusコンテンツのクリーンアップ.lnk" "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Wsusコンテンツのクリーンアップ.lnk"
-@rem cls
-
-@rem echo 初回実行には時間がかかる場合があります。検証も含め、あらかじめ実行しておくことをおすすめします。
-@rem ping localhost -n 4 > nul
-@rem explorer /n,"%InstallDirectory%\Wsusコンテンツのクリーンアップ.lnk"
