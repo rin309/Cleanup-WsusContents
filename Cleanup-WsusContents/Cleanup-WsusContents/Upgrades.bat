@@ -17,6 +17,10 @@ pause > nul
 
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
+del Cleanup-WsusContents.pssproj
+del Install.bat
+del Upgrades.bat
+move "Assets\Uninstall.bat" "Uninstall.bat"
 cls
 
 @rem echo 既に設定ファイルがある場合、上書きされないことをおすすめします
