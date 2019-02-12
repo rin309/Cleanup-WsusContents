@@ -1,9 +1,6 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
-$Host.PrivateData.VerboseForegroundColor = "Cyan"
-Set-Location -Path (Split-Path -Parent ($MyInvocation.MyCommand.Path))
-#
-# 20190211 WSUS から不要な更新プログラムを拒否する
+$Version = New-Object System.Version("1.2019.212")
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -14,8 +11,11 @@ $CuttentSettingsPath = "Settings.Current.json"
 $DefaultSettingsPath = "Assets\Settings.Default.json"
 
 
+Set-Location -Path (Split-Path -Parent ($MyInvocation.MyCommand.Path))
+$Host.PrivateData.VerboseForegroundColor = "Cyan"
+
 Function Load-Settings(){
-    $SqlServerName = $SqlServerPath.Replace("$SqlServerName" ,(Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("SqlServerName"))
+    $SqlServerName = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("SqlServerName")
 	
 	If (Test-Path $CuttentSettingsPath){
         $Settings = Get-Content $CuttentSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
@@ -177,6 +177,7 @@ ForEach ($FeatureUpdatesFilterFileName in $FeatureUpdatesFilterFileNames){
 	$AllUpdates | ForEach-Object {
 		$UpdateInformation = $_
 		$FeatureUpdatesFilters | ForEach-Object {
+			Write-Host "ファイル名: $_" -Verbose
 			If ($UpdateInformation.GetInstallableItems().Files.Name -like $_){
 				$FilteredUpdates += $UpdateInformation
 			}
@@ -193,6 +194,7 @@ $FilteredUpdates = @()
 $AllUpdates = $Wsus.GetUpdates() | Where-Object IsDeclined -eq $False
 ForEach ($QualityUpdatesFilterFileName in $QualityUpdatesFilterFileNames){
 	Get-Content -Path "Filters\QualityUpdates\$QualityUpdatesFilterFileName" | ForEach-Object {
+		Write-Host "ファイル名: $_" -Verbose
 		$FilteredUpdates += $AllUpdates | Where-Object LegacyName -like $_
 	}
 }
