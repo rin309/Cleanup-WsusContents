@@ -39,7 +39,7 @@ move "Assets\Uninstall.bat" "Uninstall.bat"
 cls
 
 echo 既に設定ファイルがある場合、上書きされないことをおすすめします
-copy "Assets\Settings.Default.json" "Settings.Current.json"
+copy "Assets\Settings.Current.json" "Settings.Current.json"
 cls
 @rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
 @rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"

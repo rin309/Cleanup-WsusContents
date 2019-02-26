@@ -1,6 +1,6 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
-$Version = New-Object System.Version("1.2019.212")
+$Version = New-Object System.Version("1.2019.226")
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -132,7 +132,7 @@ Function Start-Logging(){
 		$LogsDirectoryChildItems = (Get-ChildItem "Logs\" -Directory -Filter "20*")
 		If ($LogsDirectoryChildItems.Length -gt $LogMaximumCount){
 			ForEach ($LogsDirectoryChildItem in $LogsDirectoryChildItems){
-				$LogsDirectoryChildItem | Remove-Item
+				$LogsDirectoryChildItem | Remove-Item -Recurse -Force
 				#西暦上2桁"20"から始まるディレクトリを検索
                 If ((Get-ChildItem "Logs\" -Directory -Filter "20*").Length -le $LogMaximumCount){
 					break

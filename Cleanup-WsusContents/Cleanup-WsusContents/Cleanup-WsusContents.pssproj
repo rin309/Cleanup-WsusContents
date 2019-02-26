@@ -50,6 +50,7 @@
     <Content Include="Assets\Task-Cleanup-WsusContents %28Monthly%29.xml" />
     <Content Include="Assets\Task-Cleanup-WsusContents %28Weekly%29.xml" />
     <Content Include="Assets\Uninstall.bat" />
+    <Content Include="Assets\Settings.Current.json" />
     <Content Include="Upgrades.bat" />
     <Content Include="Install.bat" />
     <Content Include="WSUS DB インデックスの再構成.lnk" />
