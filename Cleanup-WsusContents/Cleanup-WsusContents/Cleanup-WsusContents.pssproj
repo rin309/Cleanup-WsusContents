@@ -27,22 +27,29 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Cleanup-WsusContents.ps1" />
+    <Compile Include="Assets\Set-ValueToWsusPool.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\Settings.Default.json" />
-    <Content Include="Filters\FeatureUpdates\CLIENTBUSINESS-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filters\FeatureUpdates\CLIENTBUSINESS-Windows 10, バージョン 1809.txt" />
-    <Content Include="Filters\FeatureUpdates\CLIENTCONSUMER-Windows 10, バージョン 1803.txt" />
-    <Content Include="Filters\FeatureUpdates\CLIENTCONSUMER-Windows 10, バージョン 1809.txt" />
+    <Content Include="Filters\FeatureUpdates\NotUse--CheckSettingsJson\CLIENTBUSINESS-Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\NotUse--CheckSettingsJson\CLIENTBUSINESS-Windows 10, バージョン 1809.txt" />
+    <Content Include="Filters\FeatureUpdates\NotUse--CheckSettingsJson\CLIENTCONSUMER-Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\NotUse--CheckSettingsJson\CLIENTCONSUMER-Windows 10, バージョン 1809.txt" />
     <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1803.txt" />
+    <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1909.txt" />
+    <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1903.txt" />
     <Content Include="Filters\FeatureUpdates\Windows 10, バージョン 1809.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10 LTSB 2016 64ビット版のみ.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1709 64ビット版.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1803 32ビット版.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1803 64ビット版.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1809 32ビット版.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1809 64ビット版.txt" />
-    <Content Include="Filters\QualityUpdates\Windows 7 Service Pack 1 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1909 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1909 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10 LTSB 2016 64ビット版のみ.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10, バージョン 1709 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10, バージョン 1803 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10, バージョン 1803 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1903 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10, バージョン 1809 32ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\Windows 10, バージョン 1903 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 10, バージョン 1809 64ビット版.txt" />
+    <Content Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\Windows 7 Service Pack 1 32ビット版.txt" />
     <Content Include="Filters\QualityUpdates\Windows 8.1 32ビット版.txt" />
     <Content Include="Filters\QualityUpdates\Windows 8.1 64ビット版.txt" />
     <Content Include="Assets\Scripts-WsusDBMaintenance.sql" />
@@ -54,15 +61,19 @@
     <Content Include="Upgrades.bat" />
     <Content Include="Install.bat" />
     <Content Include="WSUS DB インデックスの再構成.lnk" />
-    <Content Include="WSUS メモリーサイズ調整 %28メモリー実装容量が8GB～環境向け%29.lnk" />
+    <Content Include="初期設定-WSUS メモリ サイズ調整 %28min server memory=2048%29.lnk" />
     <Content Include="Wsusコンテンツのクリーンアップ.lnk" />
+    <Content Include="初期設定-WsusPoolの設定変更.lnk" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Filters\" />
     <Folder Include="Filters\FeatureUpdates\" />
+    <Folder Include="Filters\FeatureUpdates\NotUse--CheckSettingsJson\" />
     <Folder Include="Filters\QualityUpdates\" />
     <Folder Include="Assets\" />
+    <Folder Include="Filters\QualityUpdates\その他 %28メンテナンスされていません%29\" />
     <Folder Include="Logs\" />
+    <Folder Include="Installers\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

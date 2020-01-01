@@ -2,12 +2,21 @@
 cls
 set InstallDirectory=C:\Tools\Scripts\Wsus
 
-echo SQLのメンテナンスなどが動作しませんので、このツールはWSUSがインストールされているサーバーにて実行されることをおすすめします
-echo また、SQLのメンテナンスにはODBC Driverとsqlcmd Utilityが必要になります
+cls
+echo コピー済みのODBC Driverとsqlcmd Utilityをインストールしています...
+Installers\VC_redist.x64.exe /install /passive
+msiexec /i Installers\msodbcsql_17.4.2.1_x64.msi /passive IACCEPTMSODBCSQLLICENSETERMS=YES
+msiexec /i Installers\MsSqlCmdLnUtils.msi /passive IACCEPTMSSQLCMDLNUTILSLICENSETERMS=YES
+
+cls
+echo (インストールの有無に関係なく表示されています)
+echo SQLのメンテナンスなどを動作させるために、WSUSがインストールされているサーバーにて実行されることをおすすめします
 echo.
+echo また、SQLのメンテナンスにはODBC Driverとsqlcmd Utilityが必要になります
 echo 事前にインストールを済ませてください
 echo - https://docs.microsoft.com/ja-jp/sql/tools/sqlcmd-utility
-echo △sqlcmd 15をインストールするにはODBC 13.1とODBC 17のインストールが必要なようです
+echo - https://www.microsoft.com/ja-JP/download/details.aspx?id=56567
+echo - https://aka.ms/vs/15/release/vc_redist.x64.exe
 echo.
 echo.
 pause
@@ -21,14 +30,12 @@ echo インストールディレクトリの変更をした場合は、以下のファイルの修正が必要です
 echo - Wsusコンテンツのクリーンアップ.lnk
 echo - Assets\Task-Cleanup-WsusContents (Monthly).xml
 echo.
-echo (下記ファイルは通常は使用しませんので適宜修正してください)
-echo - WSUS DB インデックスの再構成.lnk
-echo - WSUS メモリーサイズ調整 (メモリー実装容量が8GB～環境向け).lnk
-echo - Assets\Task-Cleanup-WsusContents (Weekly).xml
+echo (その他ショートカットは直接プログラムで参照しませんので、適宜ご活用ください)
 echo.
 echo.
 echo インストールを始めてもよい場合は何かキーを押してください...
 pause > nul
+cls
 
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
@@ -44,15 +51,21 @@ cls
 @rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
 @rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"
 
-echo 環境・運用に応じて Settings.Current.json を記述してください
+echo 標準で以下の設定がされていますので、環境・運用に応じて Settings.Current.json を記述してください
 echo.
-echo - FeatureUpdatesFilter.FileNames: 既定でリテール版のWindows 10の機能更新プログラムとWindows 10, バージョン 1809以外の機能更新プログラムを拒否します
-echo -- %InstallDirectory%\Filters\FeatureUpdates\ のファイル名を追加することにより、対象を増やすことができます
-echo - QualityUpdatesFilter.FileNames: 既定でWindows 7 Service Pack 1 32ビット版, Windows 8.1 64ビット版, Windows 10, バージョン 1809 64ビット版以外の品質更新プログラムを拒否します
-echo -- %InstallDirectory%\Filters\QualityUpdates\ のファイル名を追加することにより、対象を増やすことができます
-echo - IsDeclineMsOfficeUpdates: 既定では TargetMsOfficeArchitecture で指定したOffice向け更新プログラムの拒否が有効です
-echo - TargetMsOfficeArchitecture: 既定では64ビット版のOffice向け更新プログラムが拒否されます
-echo - ReservedFile: 設定は暫定処置です。同パーティション内にほかのシステムが同居する場合はFSRMによるクォーターなどを検討してください。
+echo * 機能更新プログラム
+echo - 拒否: Windows 10, バージョン 1903を含む機能更新プログラム
+echo - 拒否: 64ビット版以外の機能更新プログラム
+echo - 拒否: コンシューマー エディション
+echo * 品質更新プログラム
+echo - 拒否: Windows 10, バージョン 1909 64ビット版以外の品質更新プログラム
+echo - 拒否: Windows 8.1 64ビット版以外の品質更新プログラム
+echo * Office
+echo - 拒否: 64ビット版向けの更新プログラム
+echo * 【BETA】クライアントから必要とされた更新プログラムに対して、自動承認するグループ
+echo - 品質更新プログラム: 更新プログラムリリースから15日経過後、"すべてのコンピューター"に承認されます
+echo - 品質更新プログラム: 更新プログラムリリースから5日経過後、"先行適用-品質更新プログラム"に承認されます
+echo - 機能更新プログラム: 更新プログラムリリースから60日経過後、"先行適用-機能更新プログラム"に承認されます
 echo.
 echo.
 ping localhost -n 4 > nul

@@ -19,13 +19,15 @@ cls
 
 echo 環境・運用に応じて Settings.Current.json を記述してください
 echo.
-echo - FeatureUpdatesFilter.FileNames: 既定でリテール版のWindows 10の機能更新プログラムとWindows 10, バージョン 1809以外の機能更新プログラムを拒否します
+echo - FeatureUpdatesFilter.FileNames: 既定でリテール版のWindows 10の機能更新プログラムとWindows 10, バージョン 1903までの機能更新プログラムを拒否します
 echo -- %InstallDirectory%\Filters\FeatureUpdates\ のファイル名を追加することにより、対象を増やすことができます
-echo - QualityUpdatesFilter.FileNames: 既定でWindows 7 Service Pack 1 32ビット版, Windows 8.1 64ビット版, Windows 10, バージョン 1809 64ビット版以外の品質更新プログラムを拒否します
+echo - IsDeclineFeatureUpdatesClientBusiness: 既定では法人向けライセンス製品の機能更新プログラムの拒否が無効です
+echo - IsDeclineFeatureUpdatesClientConsumer: 既定ではOEM・DSP製品向け更新プログラムの拒否が有効です
+echo - QualityUpdatesFilter.FileNames: 既定でWindows 8.1 64ビット版, Windows 10, バージョン 1909 64ビット版以外の品質更新プログラムを拒否します
 echo -- %InstallDirectory%\Filters\QualityUpdates\ のファイル名を追加することにより、対象を増やすことができます
 echo - IsDeclineMsOfficeUpdates: 既定では TargetMsOfficeArchitecture で指定したOffice向け更新プログラムの拒否が有効です
 echo - TargetMsOfficeArchitecture: 既定では64ビット版のOffice向け更新プログラムが拒否されます
-echo - ReservedFile: 設定は暫定処置です。同パーティション内にほかのシステムが同居する場合はFSRMによるクォーターなどを検討してください。
+echo - ReservedFile: 設定は暫定処置です。同パーティション内にほかのシステムが同居する場合はFSRMによるクォーターなどを検討してください
 echo.
 echo.
 ping localhost -n 4 > nul
