@@ -32,5 +32,6 @@
       "MinimumWaitDays": 60,
       "TargetGroupName": "先行適用-機能更新プログラム"
     }
-  ]
+  ],
+  "RequiresVersion": "1.2020.101"
 }

@@ -1,6 +1,6 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
-$Version = New-Object System.Version("1.2020.101")
+$Version = New-Object System.Version("1.2020.102")
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -13,7 +13,12 @@ Set-Location -Path (Split-Path -Parent ($MyInvocation.MyCommand.Path))
 $Host.PrivateData.VerboseForegroundColor = "Cyan"
 
 Function Load-Settings(){
-    $SqlServerName = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("SqlServerName")
+    If (Test-Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup"){
+        $SqlServerName = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("SqlServerName")
+    }
+    If (Test-Path "Registry::HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\150\Tools\ClientSetup") {
+		$ODBCToolsPath = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\150\Tools\ClientSetup").GetValue("ODBCToolsPath")
+	}
 	
 	If (Test-Path $CuttentSettingsPath){
         $Settings = Get-Content $CuttentSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
@@ -25,7 +30,7 @@ Function Load-Settings(){
         $Script:DummyFileName = $Settings.ReservedFile.Name
         $Script:DummyFileSize = $Settings.ReservedFile.Size
         $Script:WsusDBMaintenanceScriptPath = $Settings.MaintenanceSql.ScriptPath
-        $Script:SqlCmdPath = $Settings.MaintenanceSql.SqlCmdPath
+        If ($SqlCmdPath -eq $null) {$Script:SqlCmdPath = $Settings.MaintenanceSql.SqlCmdPath}
         $Script:SqlServerPath = $Settings.MaintenanceSql.ServerPath
         $Script:IsDeclineMsOfficeUpdates = $Settings.DeclineRule.IsDeclineMsOfficeUpdates
         $Script:TargetMsOfficeArchitecture = $Settings.DeclineRule.TargetMsOfficeArchitecture
@@ -38,10 +43,6 @@ Function Load-Settings(){
     }
 	If ($WsusInstallDirectory -eq $null) {
 		$Script:WsusInstallDirectory = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Update Services\Server\Setup").GetValue("ContentDir")
-	}
-    If ($SqlCmdPath -eq $null) {
-		$ODBCToolsPath = (Get-Item -Path "Registry::HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\150\Tools\ClientSetup").GetValue("ODBCToolsPath")
-		$Script:SqlCmdPath = Join-Path $ODBCToolsPath "SQLCMD.EXE"
 	}
 
 	$DefaultSettings = Get-Content $DefaultSettingsPath -Encoding UTF8 -Raw | ConvertFrom-Json
@@ -63,6 +64,7 @@ Function Load-Settings(){
 	If ($IsLogging -eq $null) {$Script:IsLogging = $DefaultSettings.Log.IsLogging}
 	If ($LogMaximumCount -eq $null) {$Script:LogMaximumCount = $DefaultSettings.Log.MaximumCount}
 
+    $Script:SqlCmdPath = Join-Path $ODBCToolsPath "SQLCMD.EXE"
 	$Script:SqlServerPath = $SqlServerPath.Replace("$SqlServerName",$SqlServerName)
 	$Script:DummyFilePath = Join-Path $WsusInstallDirectory $DummyFileName
 }
@@ -275,10 +277,10 @@ $ApproveNeededUpdatesRule | ForEach-Object {
 
 	$FilteredUpdates = @()
 	If ($_.QualityUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays))}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.Update.UpdateClassificationTitle -ne "Upgrades")}
 	}
 	If ($_.FeatureUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.UpdateClassificationTitle -ne "Upgrades" -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays))}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays))}
 	}
 	$FilteredUpdates | Export-CsvFromWsusUpdates -FileName "3 承認 - $TargetGroupName"
 	Approve-Updates $FilteredUpdates ($Wsus.GetComputerTargetGroups() | Where-Object Name -eq $TargetGroupName)

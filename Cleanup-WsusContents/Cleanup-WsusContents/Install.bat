@@ -45,31 +45,29 @@ del Upgrades.bat
 move "Assets\Uninstall.bat" "Uninstall.bat"
 cls
 
-echo 既に設定ファイルがある場合、上書きされないことをおすすめします
-copy "Assets\Settings.Current.json" "Settings.Current.json"
-cls
 @rem explorer /n,"%InstallDirectory%\Filters\FeatureUpdates\"
 @rem explorer /n,"%InstallDirectory%\Filters\QualityUpdates\"
 
 echo 標準で以下の設定がされていますので、環境・運用に応じて Settings.Current.json を記述してください
 echo.
-echo * 機能更新プログラム
+echo - 置き換えられた更新プログラムを拒否
+echo - 【BETA】クライアントから必要とされた更新プログラムに対して、指定したグループに指定した期間を経過後に承認する
+echo - WSUSのクリーンアップ (削除された古い更新プログラム, 圧縮された更新プログラム, 削除された古い更新プログラム, 解放されたディスク領域)
+echo - WSUS DB インデックスの再構成 (https://gallery.technet.microsoft.com/scriptcenter/6f8cde49-5c52-4abd-9820-f1d270ddea61)
+echo - 空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイル (4GB) を作成
+echo ## 機能更新プログラム
 echo - 拒否: Windows 10, バージョン 1903を含む機能更新プログラム
 echo - 拒否: 64ビット版以外の機能更新プログラム
 echo - 拒否: コンシューマー エディション
-echo * 品質更新プログラム
+echo ## 品質更新プログラム
 echo - 拒否: Windows 10, バージョン 1909 64ビット版以外の品質更新プログラム
 echo - 拒否: Windows 8.1 64ビット版以外の品質更新プログラム
-echo * Office
+echo ## Office
 echo - 拒否: 64ビット版向けの更新プログラム
-echo * 【BETA】クライアントから必要とされた更新プログラムに対して、自動承認するグループ
-echo - 品質更新プログラム: 更新プログラムリリースから15日経過後、"すべてのコンピューター"に承認されます
-echo - 品質更新プログラム: 更新プログラムリリースから5日経過後、"先行適用-品質更新プログラム"に承認されます
-echo - 機能更新プログラム: 更新プログラムリリースから60日経過後、"先行適用-機能更新プログラム"に承認されます
 echo.
 echo.
 ping localhost -n 4 > nul
-notepad "Settings.Current.json"
+notepad "Assets\Settings.Current.json"
 cls
 
 SchTasks /Create /Xml "%InstallDirectory%\Assets\Task-Cleanup-WsusContents (Weekly).xml" /TN "Cleanup-WsusContents"

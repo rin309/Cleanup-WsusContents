@@ -9,6 +9,7 @@ echo.
 echo インストールを始めてもよい場合は何かキーを押してください...
 pause > nul
 
+copy /y Assets\Settings.Current.json Assets\Settings.Current.json.old
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
 del Cleanup-WsusContents.pssproj
@@ -19,17 +20,23 @@ cls
 
 echo 環境・運用に応じて Settings.Current.json を記述してください
 echo.
-echo - FeatureUpdatesFilter.FileNames: 既定でリテール版のWindows 10の機能更新プログラムとWindows 10, バージョン 1903までの機能更新プログラムを拒否します
-echo -- %InstallDirectory%\Filters\FeatureUpdates\ のファイル名を追加することにより、対象を増やすことができます
-echo - IsDeclineFeatureUpdatesClientBusiness: 既定では法人向けライセンス製品の機能更新プログラムの拒否が無効です
-echo - IsDeclineFeatureUpdatesClientConsumer: 既定ではOEM・DSP製品向け更新プログラムの拒否が有効です
-echo - QualityUpdatesFilter.FileNames: 既定でWindows 8.1 64ビット版, Windows 10, バージョン 1909 64ビット版以外の品質更新プログラムを拒否します
-echo -- %InstallDirectory%\Filters\QualityUpdates\ のファイル名を追加することにより、対象を増やすことができます
-echo - IsDeclineMsOfficeUpdates: 既定では TargetMsOfficeArchitecture で指定したOffice向け更新プログラムの拒否が有効です
-echo - TargetMsOfficeArchitecture: 既定では64ビット版のOffice向け更新プログラムが拒否されます
-echo - ReservedFile: 設定は暫定処置です。同パーティション内にほかのシステムが同居する場合はFSRMによるクォーターなどを検討してください
+echo - 置き換えられた更新プログラムを拒否
+echo - 【BETA】クライアントから必要とされた更新プログラムに対して、指定したグループに指定した期間を経過後に承認する
+echo - WSUSのクリーンアップ (削除された古い更新プログラム, 圧縮された更新プログラム, 削除された古い更新プログラム, 解放されたディスク領域)
+echo - WSUS DB インデックスの再構成 (https://gallery.technet.microsoft.com/scriptcenter/6f8cde49-5c52-4abd-9820-f1d270ddea61)
+echo - 空き領域が少なくなりがちな環境で、スクリプトが正常に動作するためのダミーファイル (4GB) を作成
+echo ## 機能更新プログラム
+echo - 拒否: Windows 10, バージョン 1903を含む機能更新プログラム
+echo - 拒否: 64ビット版以外の機能更新プログラム
+echo - 拒否: コンシューマー エディション
+echo ## 品質更新プログラム
+echo - 拒否: Windows 10, バージョン 1909 64ビット版以外の品質更新プログラム
+echo - 拒否: Windows 8.1 64ビット版以外の品質更新プログラム
+echo ## Office
+echo - 拒否: 64ビット版向けの更新プログラム
+
 echo.
 echo.
 ping localhost -n 4 > nul
-notepad "Settings.Current.json"
+notepad "Assets\Settings.Current.json"
 cls
