@@ -260,6 +260,7 @@ $ApproveNeededUpdatesRule | ForEach-Object {
 	Else{
 		$TargetGroupName = "すべてのコンピューター"
 	}
+	$MinimumWaitDays = $_.MinimumWaitDays
 	If (($Wsus.GetComputerTargetGroups() | Where-Object Name -eq $TargetGroupName).Count -eq 0){
 		$Wsus.CreateComputerTargetGroup($TargetGroupName) | Out-Null
 	}
@@ -273,10 +274,10 @@ $ApproveNeededUpdatesRule | ForEach-Object {
 
 	$FilteredUpdates = @()
 	If ($_.QualityUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.UpdateClassificationTitle -ne "Upgrades")}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {(!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($MinimumWaitDays)) -and $_.UpdateClassificationTitle -ne "Upgrades")}
 	}
 	If ($_.FeatureUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.UpdateClassificationTitle -eq "Upgrades")}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {(!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($MinimumWaitDays)) -and $_.UpdateClassificationTitle -eq "Upgrades")}
 	}
 	Export-CsvFromWsusUpdates -Updates $FilteredUpdates -FileName "3 承認 - $TargetGroupName"
 	Approve-Updates $FilteredUpdates ($Wsus.GetComputerTargetGroups() | Where-Object Name -eq $TargetGroupName)

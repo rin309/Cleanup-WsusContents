@@ -37,8 +37,11 @@ cls
 
 xcopy /erchy "%~dp0*" "%InstallDirectory%\"
 cd /d "%InstallDirectory%\"
+rd /s /q bin\*
+rd /s /q obj\*
 del Cleanup-WsusContents.pssproj
 del Install.bat
+del Silent-Install.bat
 del Upgrades.bat
 move "Assets\Uninstall.bat" "Uninstall.bat"
 cls
