@@ -1,6 +1,6 @@
 ﻿#Requires -Version 4.0
 #Requires -RunAsAdministrator
-$Version = New-Object System.Version("1.2020.102")
+$Version = New-Object System.Version("1.2020.103")
 # Cleanup-WsusContents (CWS)
 #
 # このスクリプトは現状ベースで作成されたものです。今後の更新プログラムに対応するには、WSUSコンソールかSettings.Current.jsonかスクリプトのメンテナンスが必要になることを理解してください。
@@ -92,16 +92,16 @@ Function Check-Settings(){
 #特定の更新プログラムを承認
 Function Approve-Updates($FilteredUpdates, $TargetGroup){
     If ($FilteredUpdates -ne $null){
-	    $DeclineUpdatesCount = 0
+	    $UpdatesCount = 0
 	    $FilteredUpdates | ForEach-Object {
-		    $_.Approve("install",$TargetGroup)
-            If ($DeclineUpdatesCount -eq 0){
+		    $_.Approve("install",$TargetGroup) | Out-Null
+            If ($UpdatesCount -eq 0){
                 Write-Progress -Activity "プログラムを承認" -Status $_.Title -PercentComplete 0
             }
             Else{
-                Write-Progress -Activity "プログラムを承認" -Status $_.Title -PercentComplete ($DeclineUpdatesCount / $FilteredUpdates.Count * 100)
+                Write-Progress -Activity "プログラムを承認" -Status $_.Title -PercentComplete ($UpdatesCount / $FilteredUpdates.Count * 100)
 		    }
-            $DeclineUpdatesCount++
+            $UpdatesCount++
 	    }
     }
 }
@@ -110,7 +110,7 @@ Function Decline-FeatureUpdates($FilteredUpdates){
     If ($FilteredUpdates -ne $null){
 	    $DeclineUpdatesCount = 0
 	    $FilteredUpdates | ForEach-Object {
-		    $_.Decline()
+		    $_.Decline() | Out-Null
             If ($DeclineUpdatesCount -eq 0){
                 Write-Progress -Activity "機能更新プログラムを拒否" -Status $_.Title -PercentComplete 0
             }
@@ -126,7 +126,7 @@ Function Decline-QualityUpdates($FilteredUpdates){
     If ($FilteredUpdates -ne $null){
 	    $DeclineUpdatesCount = 0
 	    $FilteredUpdates | ForEach-Object {
-		    $_.Decline()
+		    $_.Decline() | Out-Null
             If ($DeclineUpdatesCount -eq 0){
                 Write-Progress -Activity "品質更新プログラムを拒否" -Status $_.Title -CurrentOperation $_.LegacyName -PercentComplete 0
             }
@@ -171,11 +171,7 @@ Function Start-Logging(){
 		Get-PSDrive -Name $WsusInstallDirectory.SubString(0,1)
 	}
 }
-Function Export-CsvFromWsusUpdates{
-	param (
-		[Parameter(ValueFromPipeline=$true,Mandatory=$true)]$Updates,
-		[Parameter(Mandatory=$true)][String]$FileName
-	)
+Function Export-CsvFromWsusUpdates ($Updates, $FileName){
 	$Updates | Select-Object Title, @{Name="ProductTitles";Expression={($_.ProductTitles)}}, CreationDate, LegacyName | Export-Csv -NoTypeInformation "$LogDirectory\$FileName.csv" -Encoding UTF8
 }
 
@@ -197,16 +193,16 @@ If (Test-Path $DummyFilePath){
 Write-Host "* 更新プログラムを拒否" -Verbose
 Write-Host "** 置き換えられた更新プログラムを拒否" -Verbose
 $FilteredUpdates = @()
-$FilteredUpdates = $Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and $_.IsSuperseded -and !($_.HasSupersededUpdates)}
+$FilteredUpdates = $Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and $_.IsSuperseded -and !($_.HasSupersededUpdates) -and !($_.IsApproved)}
 Decline-QualityUpdates($FilteredUpdates)
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)} | Export-CsvFromWsusUpdates -FileName "2-1 拒否済み - 置き換えられた更新プログラム"
+	Export-CsvFromWsusUpdates -Updates ($FilteredUpdates) -FileName "2-1 拒否済み - 置き換えられた更新プログラム"
 }
 
 
 Write-Host "** 機能更新プログラムを拒否" -Verbose
 $FilteredUpdates = @()
-$AllUpdates = $Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and $_.UpdateClassificationTitle -eq "Upgrades"}
+$AllUpdates = $Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and !($_.IsApproved) -and $_.UpdateClassificationTitle -eq "Upgrades"}
 ForEach ($FeatureUpdatesFilterFileName in $FeatureUpdatesFilterFileNames){
 	If ($IsDeclineFeatureUpdatesClientBusiness){
 		$FeatureUpdatesFilters += "*CLIENTBUSINESS*`r`n"
@@ -234,12 +230,12 @@ If ($FeatureUpdatesOutcludeFilter){
 }
 Decline-FeatureUpdates($FilteredUpdates)
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)} | Export-CsvFromWsusUpdates -FileName "2-2 拒否済み - 機能更新プログラム"
+	Export-CsvFromWsusUpdates -Updates ($FilteredUpdates) -FileName "2-2 拒否済み - 機能更新プログラム"
 }
 
 Write-Host "** 品質更新プログラムを拒否" -Verbose
 $FilteredUpdates = @()
-$AllUpdates = $Wsus.GetUpdates() | Where-Object IsDeclined -eq $False
+$AllUpdates = $Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)}
 ForEach ($QualityUpdatesFilterFileName in $QualityUpdatesFilterFileNames){
 	Get-Content -Path "Filters\QualityUpdates\$QualityUpdatesFilterFileName" | ForEach-Object {
 		$FilteredUpdates += $AllUpdates | Where-Object LegacyName -like $_
@@ -250,7 +246,7 @@ If ($IsDeclineMsOfficeUpdates){
 	$FilteredUpdates += $AllUpdates | Where-Object {$_.Title -like "*$TargetMsOfficeArchitecture*" -and $_.ProductTitles -like "Office *"}
 }
 If ($IsLogging){
-	$FilteredUpdates | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)} | Export-CsvFromWsusUpdates -FileName "2-3 拒否済み - 品質更新プログラム"
+	Export-CsvFromWsusUpdates -Updates ($FilteredUpdates) -FileName "2-3 拒否済み - 品質更新プログラム"
 }
 Decline-QualityUpdates($FilteredUpdates)
 Clear-Host
@@ -277,12 +273,12 @@ $ApproveNeededUpdatesRule | ForEach-Object {
 
 	$FilteredUpdates = @()
 	If ($_.QualityUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.Update.UpdateClassificationTitle -ne "Upgrades")}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.UpdateClassificationTitle -ne "Upgrades")}
 	}
 	If ($_.FeatureUpdates){
-		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.Update.IsDeclined) -and !($_.Update.IsApproved) -and $_.Update.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays))}
+		$FilteredUpdates += $Wsus.GetUpdates($UpdateScope) | Where-Object {!($_.IsDeclined) -and !($_.IsApproved) -and $_.CreationDate -le [DateTime]::Now.AddDays(-($_.MinimumWaitDays) -and $_.UpdateClassificationTitle -eq "Upgrades")}
 	}
-	$FilteredUpdates | Export-CsvFromWsusUpdates -FileName "3 承認 - $TargetGroupName"
+	Export-CsvFromWsusUpdates -Updates $FilteredUpdates -FileName "3 承認 - $TargetGroupName"
 	Approve-Updates $FilteredUpdates ($Wsus.GetComputerTargetGroups() | Where-Object Name -eq $TargetGroupName)
 }
 Clear-Host
@@ -305,7 +301,7 @@ Clear-Host
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $True} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "承認済みの更新プログラム"
 #$Wsus.GetUpdates() | Where-Object {$_.IsDeclined -eq $False -and $_.IsApproved -eq $False} | Select Title, ProductTitles, CreationDate, LegacyName | Out-GridView -Title "未承認の更新プログラム"
 If ($IsLogging){
-	$Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)} | Export-CsvFromWsusUpdates -FileName "4 未承認の更新プログラム"
+	Export-CsvFromWsusUpdates -Updates ($Wsus.GetUpdates() | Where-Object {!($_.IsDeclined) -and !($_.IsApproved)}) -FileName "4 未承認の更新プログラム"
 	Get-PSDrive -Name $WsusInstallDirectory.SubString(0,1)
 }
 

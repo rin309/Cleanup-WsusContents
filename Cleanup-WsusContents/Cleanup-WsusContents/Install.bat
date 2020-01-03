@@ -10,9 +10,7 @@ msiexec /i Installers\MsSqlCmdLnUtils.msi /passive IACCEPTMSSQLCMDLNUTILSLICENSE
 
 cls
 echo (インストールの有無に関係なく表示されています)
-echo SQLのメンテナンスなどを動作させるために、WSUSがインストールされているサーバーにて実行されることをおすすめします
-echo.
-echo また、SQLのメンテナンスにはODBC Driverとsqlcmd Utilityが必要になります
+echo SQLのメンテナンスにはODBC Driverとsqlcmd Utilityが必要になります
 echo 事前にインストールを済ませてください
 echo - https://docs.microsoft.com/ja-jp/sql/tools/sqlcmd-utility
 echo - https://www.microsoft.com/ja-JP/download/details.aspx?id=56567
