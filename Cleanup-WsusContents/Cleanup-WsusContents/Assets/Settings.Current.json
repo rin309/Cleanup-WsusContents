@@ -12,7 +12,8 @@
     "IsDeclineFeatureUpdatesClientConsumer": true,
     "QualityUpdatesFilter": [
       "Windows 8.1 64ビット版.txt",
-      "Windows 10, バージョン 1909 64ビット版.txt"
+      "Windows 10, バージョン 1909 64ビット版.txt",
+      "Edge, Stable, 64ビット版.txt"
     ],
     "IsDeclineMsOfficeUpdates": true,
     "TargetMsOfficeArchitecture": "64 ビット版"
