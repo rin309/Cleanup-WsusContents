@@ -1,0 +1,12 @@
+*890830_X86_WIN8_MRT_*
+*-DotNetCumulative-Client-x86-Retail
+*-DotNetCumulative-Client-arm64-Retail
+*Windows1121h2Client-RTM-ARM64*
+*Windows1121h2Client-RTM-ServicingStackUpdate-X86*
+*Windows1121h2Client-RTM-ServicingStackUpdate-ARM64*
+*Windows1121h2Client-RTM-AppraiserData-X86*
+*Windows1121h2Client-RTM-AppraiserData-ARM64*
+*Windows1121h2Client-RTM-FeatureEnablement-X86*
+*Windows1121h2Client-RTM-FeatureEnablement-ARM64*
+*Windows1121h2Client-RTM-UnifiedCumulativeSecurity-X86*
+*Windows1121h2Client-RTM-UnifiedCumulativeSecurity-ARM64*
