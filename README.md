@@ -1,3 +1,8 @@
+現在、このスクリプトはメンテナンスされていません。
+後継のスクリプトへの移行を検討してください。
+https://github.com/rin309/Wsustainable
+
+
 **これらのスクリプトの実行は、実行した本人が責任を負うものとします。**
 
 # Cleanup WsusContents.ps1 とは
